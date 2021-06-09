@@ -1,4 +1,4 @@
-class class_a:
+class class_a(BaseA):
     def __init__(self):
         pass
 

@@ -1,12 +1,43 @@
+import functools
 import glob
+import operator
 import re
 
-from anytree import Node, RenderTree, search, Resolver, ChildResolverError
+from anytree import ChildResolverError, Node, RenderTree, Resolver, search
 
 
 def main():
-
     pass
+
+
+def get_tree_from_files(starting_path):
+    files = get_python_files(starting_path)
+    tree = create_tree(files)
+    tree_text = get_ascii_tree(tree)
+    print(tree_text)
+    python_file_nodes = search.findall(tree, filter_=lambda node: ".py" in node.name)
+    python_file_names = []
+    for node in python_file_nodes:
+        path_names = [n.name for n in node.path]
+        node_path_str = functools.reduce(lambda a, b: a + "/" + b, path_names)
+        python_file_names.append(node_path_str)
+    root_remove_python_filenames = [f.replace("root/", "") for f in python_file_names]
+    for file_name in root_remove_python_filenames:
+        with open(file_name, "r") as file:
+            file_text = file.read()
+            classes = get_classes_from_file(file_text)
+            r = Resolver("name")
+            for found_class in classes:
+                tree_path = "/root/" + file_name
+                print(f"checking for node at: {tree_path}")
+                parent_node = r.get(tree, tree_path)
+                x = Node(found_class, parent=parent_node, type="Class")
+
+        print(f"file: {file_name}")
+        print(f"\tclasses: {classes}")
+
+    print(root_remove_python_filenames)
+    return tree
 
 
 def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
@@ -19,7 +50,7 @@ def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
 
 
 def create_tree(files):
-    root = Node("project")
+    root = Node("root")
     parent_node = root
 
     r = Resolver("name")
@@ -27,7 +58,7 @@ def create_tree(files):
         parent_node = root
         print(f"\n\nfile: {file}")
         paths = []
-        path = "/project"
+        path = "/root"
         for part in file.split("/"):
             path = path + "/" + part
             print(f"\nprocessing {part} for {path}")
@@ -39,8 +70,6 @@ def create_tree(files):
                 current_node = Node(part, parent=parent_node)
                 parent_node = current_node
                 print(f"\t\t\t{current_node.path}")
-
-    print("\n\n")
     return root
 
     output = """digraph D {
@@ -81,6 +110,13 @@ def get_ascii_tree(root):
     for pre, _, node in RenderTree(root):
         tree_text = tree_text + f"{pre}{node.name}\n"
     return tree_text
+
+
+def get_classes_from_file(file_text):
+    classes = re.findall("class [^:]+", file_text)
+    remove_class_definition = [c.replace("class ", "") for c in classes]
+    remove_empty_paran = [c.replace("()", "") for c in remove_class_definition]
+    return remove_empty_paran
 
 
 if __name__ == "__main__":

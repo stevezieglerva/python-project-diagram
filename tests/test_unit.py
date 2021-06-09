@@ -2,6 +2,7 @@ import re
 import unittest
 from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
+from anytree import ChildResolverError, Node, RenderTree, Resolver, search
 from main import *
 
 
@@ -29,7 +30,7 @@ class UnitTests(unittest.TestCase):
         print("tree:" + tree_text)
 
         # Assert
-        expected = """project
+        expected = """root
 ├── a
 │   ├── b.py
 │   └── c.py
@@ -38,28 +39,65 @@ class UnitTests(unittest.TestCase):
 """
         self.assertEqual(tree_text, expected)
 
+    def test_get_classes_from_file__given_file_with_two_classes__then_two_classes_returned(
+        self,
+    ):
+        # Arrange
+        file_text = """class class_a():
+    pass
+
+class class_b():
+    pass
+"""
+
+        # Act
+        results = get_classes_from_file(file_text)
+
+        # Assert
+        self.assertEqual(results, ["class_a", "class_b"])
+
+    def test_get_classes_from_file__given_file_with_two_inherited_classes__then_two_classes_returned(
+        self,
+    ):
+        # Arrange
+        file_text = """class class_a(BaseA):
+    pass
+
+class class_b(BaseB):
+    pass
+"""
+
+        # Act
+        results = get_classes_from_file(file_text)
+
+        # Assert
+        self.assertEqual(results, ["class_a(BaseA)", "class_b(BaseB)"])
+
 
 class IntegrationTests(unittest.TestCase):
     def test_create_tree_from_real_files__given_project_dir__then_tree_correct(self):
         # Arrange
-        files = get_python_files("tests/data/project")
-        print(files)
 
         # Act
-        tree = create_tree(files)
+        tree = get_tree_from_files("tests/data/project")
         tree_text = get_ascii_tree(tree)
         print(tree_text)
 
         # Assert
-        expected = """project
+        expected = """root
 └── tests
     └── data
         └── project
             ├── file1.py
+            │   └── class_a(BaseA)
             └── dir1
                 └── file2.py
+                    └── class_b
 """
         self.assertEqual(tree_text, expected)
+
+        python_files = search.findall(tree, filter_=lambda node: ".py" in node.name)
+        print(python_files)
 
 
 if __name__ == "__main__":
