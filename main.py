@@ -14,7 +14,6 @@ def get_tree_from_files(starting_path):
     files = get_python_files(starting_path)
     tree = create_tree(files)
     tree_text = get_ascii_tree(tree)
-    print(tree_text)
     python_file_nodes = search.findall(tree, filter_=lambda node: ".py" in node.name)
     python_file_names = []
     for node in python_file_nodes:
@@ -29,14 +28,8 @@ def get_tree_from_files(starting_path):
             r = Resolver("name")
             for found_class in classes:
                 tree_path = "/root/" + file_name
-                print(f"checking for node at: {tree_path}")
                 parent_node = r.get(tree, tree_path)
                 x = Node(found_class, parent=parent_node, type="Class")
-
-        print(f"file: {file_name}")
-        print(f"\tclasses: {classes}")
-
-    print(root_remove_python_filenames)
     return tree
 
 
@@ -56,20 +49,16 @@ def create_tree(files):
     r = Resolver("name")
     for file in files:
         parent_node = root
-        print(f"\n\nfile: {file}")
         paths = []
         path = "/root"
         for part in file.split("/"):
             path = path + "/" + part
-            print(f"\nprocessing {part} for {path}")
             try:
                 found_node_already = r.get(root, path)
                 parent_node = found_node_already
             except ChildResolverError:
-                print(f"\tadding node: {path} to {parent_node}")
                 current_node = Node(part, parent=parent_node)
                 parent_node = current_node
-                print(f"\t\t\t{current_node.path}")
     return root
 
     output = """digraph D {
