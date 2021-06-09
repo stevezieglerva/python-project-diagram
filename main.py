@@ -43,7 +43,7 @@ def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
 
 
 def create_tree(files):
-    root = Node("root")
+    root = Node("root", type="root")
     parent_node = root
 
     r = Resolver("name")
@@ -57,7 +57,10 @@ def create_tree(files):
                 found_node_already = r.get(root, path)
                 parent_node = found_node_already
             except ChildResolverError:
-                current_node = Node(part, parent=parent_node)
+                node_type = "dir"
+                if part.endswith(".py"):
+                    node_type = "file"
+                current_node = Node(part, parent=parent_node, type=node_type)
                 parent_node = current_node
     return root
 
@@ -94,10 +97,13 @@ def create_tree(files):
 """
 
 
-def get_ascii_tree(root):
+def get_ascii_tree(root, include_types=False):
     tree_text = ""
+    type_text = ""
     for pre, _, node in RenderTree(root):
-        tree_text = tree_text + f"{pre}{node.name}\n"
+        if include_types:
+            type_text = " (" + node.type + ")"
+        tree_text = tree_text + f"{pre}{node.name}{type_text}\n"
     return tree_text
 
 
