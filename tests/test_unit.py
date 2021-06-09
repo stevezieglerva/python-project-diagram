@@ -39,5 +39,28 @@ class UnitTests(unittest.TestCase):
         self.assertEqual(tree_text, expected)
 
 
+class IntegrationTests(unittest.TestCase):
+    def test_create_tree_from_real_files__given_project_dir__then_tree_correct(self):
+        # Arrange
+        files = get_python_files("tests/data/project")
+        print(files)
+
+        # Act
+        tree = create_tree(files)
+        tree_text = get_ascii_tree(tree)
+        print(tree_text)
+
+        # Assert
+        expected = """project
+└── tests
+    └── data
+        └── project
+            ├── file1.py
+            └── dir1
+                └── file2.py
+"""
+        self.assertEqual(tree_text, expected)
+
+
 if __name__ == "__main__":
     unittest.main()

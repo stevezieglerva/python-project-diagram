@@ -9,8 +9,11 @@ def main():
     pass
 
 
-def get_python_files(starting_path, exclude_pattern):
-    files = glob.glob(f"{starting_path}/**/*.py", recursive=True)
+def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
+
+    glob_path = f"{starting_path}/**/*.py"
+    print(f"glob_path: {glob_path}")
+    files = glob.glob(glob_path, recursive=True)
     included_files = [f for f in files if not re.findall(exclude_pattern, f)]
     return included_files
 
@@ -76,7 +79,7 @@ def create_tree(files):
 def get_ascii_tree(root):
     tree_text = ""
     for pre, _, node in RenderTree(root):
-        tree_text = f"{pre}{node.name}\n"
+        tree_text = tree_text + f"{pre}{node.name}\n"
     return tree_text
 
 
