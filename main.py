@@ -1,6 +1,7 @@
 import functools
 import glob
 import operator
+from os import pread
 import re
 
 from anytree import ChildResolverError, Node, RenderTree, Resolver, search
@@ -33,8 +34,33 @@ def get_tree_from_files(starting_path):
     return tree
 
 
-def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
+def create_html_from_tree(node, html=""):
+    if node.is_root:
+        html = ""
+    print(f"\n\ntreeing: {node.name}")
+    print(f"input_html: {html}")
+    symbol = ""
+    if node.type == "root":
+        symbol = "🔹"
+    if node.is_leaf:
+        html = f"\n<div class=''>" + node.name + "</div>\n"
+        print(f"\t at the bottom: {html}")
+        return html
+    else:
+        for child in node.children:
+            print(f"\tabout to recurse for {child.name}")
+            html = html + (
+                "\n<div class=''>"
+                + node.name
+                + create_html_from_tree(child, html)
+                + "</div>"
+            )
 
+    print(f"output_html: {html}")
+    return html
+
+
+def get_python_files(starting_path, exclude_pattern="venv|test_|__init__"):
     glob_path = f"{starting_path}/**/*.py"
     print(f"glob_path: {glob_path}")
     files = glob.glob(glob_path, recursive=True)

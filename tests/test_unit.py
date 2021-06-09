@@ -81,7 +81,7 @@ class IntegrationTests(unittest.TestCase):
         # Act
         tree = get_tree_from_files("tests/data/project")
         tree_text = get_ascii_tree(tree)
-        print(tree_text)
+        print(get_ascii_tree(tree, True))
 
         # Assert
         expected = """root
@@ -98,6 +98,19 @@ class IntegrationTests(unittest.TestCase):
 
         python_files = search.findall(tree, filter_=lambda node: ".py" in node.name)
         print(python_files)
+
+    def test_create_html_from_tree__given_project_dir__then_diagram_correct(self):
+        # Arrange
+        tree = get_tree_from_files("tests/data/project")
+        tree_text = get_ascii_tree(tree)
+        print(get_ascii_tree(tree, True))
+
+        # Act
+        results = create_html_from_tree(tree)
+        print(f"\n\n------{results}")
+
+        # Assert
+        self.assertTrue("<html>" in results)
 
 
 if __name__ == "__main__":
