@@ -7,6 +7,9 @@ import os
 from anytree import ChildResolverError, Node, PreOrderIter, RenderTree, Resolver, search
 
 
+processed_paths = []
+
+
 def main():
     pass
 
@@ -82,20 +85,21 @@ def create_html_from_tree(node, html=""):
 <body>"""
     html += create_html_from_tree_nodes(node, "")
     html += "</body></html>"
+    print(processed_paths)
     return html
 
 
 def create_html_from_tree_nodes(node, html=""):
-    print(node.path[-1:])
-    print(get_path_string(node))
 
     file_children = [n for n in node.children if n.type == "file"]
     if file_children:
+        processed_paths.append(get_path_string(node))
         print(f"\tadding subdir with file: {node.name}")
         html += f"\n<div class='{node.type}'>{node.name} (added in loop)"
         file_and_class_html = ""
         for child in file_children:
             if child.type == "file":
+                processed_paths.append(get_path_string(child))
                 print(f"\tprocessing file: {child.name}")
                 file_and_class_html += f"\n<div class='{child.type}'>{child.name}"
                 for class_child in child.children:
@@ -109,15 +113,16 @@ def create_html_from_tree_nodes(node, html=""):
     dir_children = [n for n in node.children if n.type == "dir"]
     for child in dir_children:
         print(f"about to recurse for {child.name}")
-        html = html + (
-            f"\n<div class='{child.type}'>"
-            + node.name
-            + create_html_from_tree_nodes(child, "")
-            + "</div>"
-        )
+        child_html = create_html_from_tree_nodes(child, "")
+        print(f"\tprocessed_paths: {processed_paths}")
+        if get_path_string(node) in processed_paths:
+            html += child_html
+        else:
+            html += f"\n<div class='{child.type}'>" + node.name + child_html + "</div>"
         print(f"recurse done for {child.name}\n")
 
     print(f"output_html: {html}\n")
+    processed_paths.append(get_path_string(node))
     return html
 
 

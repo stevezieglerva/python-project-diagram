@@ -116,62 +116,65 @@ class IntegrationTests(unittest.TestCase):
         self.assertTrue("<html>" in results)
         self.assertEqual(results.count("project"), 1)
         self.assertEqual(results.count("dir1"), 1)
-        self.assertEqual(results.count("file1"), 1)
-        self.assertEqual(results.count("file2"), 1)
+        self.assertEqual(results.count("file_1"), 1)
+        self.assertEqual(results.count("file_2"), 1)
+        self.assertEqual(results.count("class_a(BaseA)"), 1)
+        self.assertEqual(results.count("class_a2(BaseA)"), 1)
+        self.assertEqual(results.count("class_b"), 1)
 
-    # def test_create_html_from_tree__given_lutils__then_diagram_correct(self):
-    #     # Arrange
-    #     tree = get_tree_from_files(
-    #         "/Users/sziegler/Documents/Github/lutils/sam-app/common_layer_hex"
-    #     )
-    #     tree_text = get_ascii_tree(tree)
-    #     print(get_ascii_tree(tree, True))
+    def test_create_html_from_tree__given_lutils__then_diagram_correct(self):
+        # Arrange
+        tree = get_tree_from_files(
+            "/Users/sziegler/Documents/Github/lutils/sam-app/common_layer_hex"
+        )
+        tree_text = get_ascii_tree(tree)
+        print(get_ascii_tree(tree, True))
 
-    #     # Act
-    #     results = create_html_from_tree(tree)
-    #     with open("temp_lutils.html", "w") as file:
-    #         file.write(results)
+        # Act
+        results = create_html_from_tree(tree)
+        with open("temp_lutils.html", "w") as file:
+            file.write(results)
 
-    #     # Assert
-    #     self.assertTrue("<html>" in results)
+        # Assert
+        self.assertTrue("<html>" in results)
 
-    # def test_create_html_from_tree__given_project_small_1_dir__then_diagram_correct(
-    #     self,
-    # ):
-    #     # Arrange
-    #     tree = get_tree_from_files("tests/data/small_1")
-    #     tree_text = get_ascii_tree(tree)
-    #     print(get_ascii_tree(tree, True))
+    def test_create_html_from_tree__given_project_small_1_dir__then_diagram_correct(
+        self,
+    ):
+        # Arrange
+        tree = get_tree_from_files("tests/data/small_1")
+        tree_text = get_ascii_tree(tree)
+        print(get_ascii_tree(tree, True))
 
-    #     # Act
-    #     results = create_html_from_tree(tree)
-    #     print(f"\n\n------\n{results}\n\n")
-    #     with open("temp_small_1.html", "w") as file:
-    #         file.write(results)
+        # Act
+        results = create_html_from_tree(tree)
+        print(f"\n\n------\n{results}\n\n")
+        with open("temp_small_1.html", "w") as file:
+            file.write(results)
 
-    #     # Assert
-    #     self.assertEqual(results.count("small_1"), 1)
-    #     self.assertEqual(results.count("file3.py"), 1)
-    #     self.assertEqual(results.count("class_c"), 1)
+        # Assert
+        self.assertEqual(results.count("small_1"), 1)
+        self.assertEqual(results.count("file3.py"), 1)
+        self.assertEqual(results.count("class_c"), 1)
 
-    # def test_create_html_from_tree__given_project_small_2_dir__then_diagram_correct(
-    #     self,
-    # ):
-    #     # Arrange
-    #     tree = get_tree_from_files("tests/data/small_2")
-    #     tree_text = get_ascii_tree(tree)
-    #     print(get_ascii_tree(tree, True))
+    def test_create_html_from_tree__given_project_small_2_dir__then_diagram_correct(
+        self,
+    ):
+        # Arrange
+        tree = get_tree_from_files("tests/data/small_2")
+        tree_text = get_ascii_tree(tree)
+        print(get_ascii_tree(tree, True))
 
-    #     # Act
-    #     results = create_html_from_tree(tree)
-    #     print(f"\n\n------\n{results}\n\n")
-    #     with open("temp_small_2.html", "w") as file:
-    #         file.write(results)
+        # Act
+        results = create_html_from_tree(tree)
+        print(f"\n\n------\n{results}\n\n")
+        with open("temp_small_2.html", "w") as file:
+            file.write(results)
 
-    #     # Assert
-    #     self.assertEqual(results.count("small_2"), 1)
-    #     self.assertEqual(results.count("file3.py"), 1)
-    #     self.assertEqual(results.count("class_c"), 1)
+        # Assert
+        self.assertEqual(results.count("small_2"), 1)
+        self.assertEqual(results.count("file3.py"), 1)
+        self.assertEqual(results.count("class_c"), 1)
 
 
 if __name__ == "__main__":
