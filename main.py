@@ -1,10 +1,10 @@
 import functools
 import glob
 import operator
-from os import pread
 import re
+import os
 
-from anytree import ChildResolverError, Node, RenderTree, Resolver, search
+from anytree import ChildResolverError, Node, PreOrderIter, RenderTree, Resolver, search
 
 
 def main():
@@ -13,50 +13,111 @@ def main():
 
 def get_tree_from_files(starting_path):
     files = get_python_files(starting_path)
+    print(f"Files to process: {files}")
     tree = create_tree(files)
     tree_text = get_ascii_tree(tree)
+    print(tree_text)
     python_file_nodes = search.findall(tree, filter_=lambda node: ".py" in node.name)
     python_file_names = []
     for node in python_file_nodes:
-        path_names = [n.name for n in node.path]
-        node_path_str = functools.reduce(lambda a, b: a + "/" + b, path_names)
+        node_path_str = get_path_string(node)
         python_file_names.append(node_path_str)
     root_remove_python_filenames = [f.replace("root/", "") for f in python_file_names]
     for file_name in root_remove_python_filenames:
-        with open(file_name, "r") as file:
+        best_path = get_valid_path(file_name)
+        with open(best_path, "r") as file:
             file_text = file.read()
             classes = get_classes_from_file(file_text)
             r = Resolver("name")
             for found_class in classes:
                 tree_path = "/root/" + file_name
                 parent_node = r.get(tree, tree_path)
-                x = Node(found_class, parent=parent_node, type="Class")
+                x = Node(found_class, parent=parent_node, type="class")
     return tree
 
 
-def create_html_from_tree(node, html=""):
-    if node.is_root:
-        html = ""
-    print(f"\n\ntreeing: {node.name}")
-    print(f"input_html: {html}")
-    symbol = ""
-    if node.type == "root":
-        symbol = "🔹"
-    if node.is_leaf:
-        html = f"\n<div class=''>" + node.name + "</div>\n"
-        print(f"\t at the bottom: {html}")
-        return html
-    else:
-        for child in node.children:
-            print(f"\tabout to recurse for {child.name}")
-            html = html + (
-                "\n<div class=''>"
-                + node.name
-                + create_html_from_tree(child, html)
-                + "</div>"
-            )
+def get_valid_path(path):
+    if os.path.exists(path):
+        return path
+    abs_path = "/" + path
+    if os.path.exists(abs_path):
+        return abs_path
 
-    print(f"output_html: {html}")
+
+def get_path_string(node):
+    path_names = [n.name for n in node.path]
+    node_path_str = functools.reduce(lambda a, b: a + "/" + b, path_names)
+    return node_path_str
+
+
+def create_html_from_tree(node, html=""):
+    html = """<html><head>
+    <style>
+        div {
+            border: 1px outset lightgray;
+            margin: 5px;
+            padding: 5px;
+
+        }
+
+        .dir {
+            color: gray;
+        }
+
+        .file {
+            color: black;
+            color: green;
+            background-color: lightgreen;
+        }
+
+        .class {
+            color: blue;
+            background-color: lightblue;
+            border: 2px outset blue;
+            width: 200px;
+        }
+    </style>
+</head>
+
+<body>"""
+    html += create_html_from_tree_nodes(node, "")
+    html += "</body></html>"
+    return html
+
+
+def create_html_from_tree_nodes(node, html=""):
+    print(node.path[-1:])
+    print(get_path_string(node))
+
+    file_children = [n for n in node.children if n.type == "file"]
+    if file_children:
+        print(f"\tadding subdir with file: {node.name}")
+        html += f"\n<div class='{node.type}'>{node.name} (added in loop)"
+        file_and_class_html = ""
+        for child in file_children:
+            if child.type == "file":
+                print(f"\tprocessing file: {child.name}")
+                file_and_class_html += f"\n<div class='{child.type}'>{child.name}"
+                for class_child in child.children:
+                    file_and_class_html += (
+                        f"\n<div class='{class_child.type}'>{class_child.name}</div>"
+                    )
+                file_and_class_html += "</div>"
+        html += file_and_class_html
+        html += "</div>"
+
+    dir_children = [n for n in node.children if n.type == "dir"]
+    for child in dir_children:
+        print(f"about to recurse for {child.name}")
+        html = html + (
+            f"\n<div class='{child.type}'>"
+            + node.name
+            + create_html_from_tree_nodes(child, "")
+            + "</div>"
+        )
+        print(f"recurse done for {child.name}\n")
+
+    print(f"output_html: {html}\n")
     return html
 
 
@@ -74,6 +135,7 @@ def create_tree(files):
 
     r = Resolver("name")
     for file in files:
+        # print(f"working file: {file}")
         parent_node = root
         paths = []
         path = "/root"
@@ -89,38 +151,6 @@ def create_tree(files):
                 current_node = Node(part, parent=parent_node, type=node_type)
                 parent_node = current_node
     return root
-
-    output = """digraph D {
-
-  subgraph cluster_p {
-    label = "Parent";
-
-    subgraph cluster_c1 {
-      label = "Child one";
-      a;
-
-      subgraph cluster_gc_1 {
-        label = "Grand-Child one";
-         b;
-      }
-      subgraph cluster_gc_2 {
-        label = "Grand-Child two";
-          c;
-          d;
-      }
-
-    }
-
-    subgraph cluster_c2 {
-      label = "Child two";
-      e;
-    }
-  }
-
-    a -> b
-    c -> e
-}
-"""
 
 
 def get_ascii_tree(root, include_types=False):
